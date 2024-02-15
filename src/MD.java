@@ -11,6 +11,8 @@ public class MD extends Canvas implements Runnable {
     //We use double buffering to stop the flickering of the animation
     BufferedImage bf = new BufferedImage(canvasWidth, canvasWidth, BufferedImage.TYPE_INT_RGB);
     int counter = 0;
+
+    double[] x, y, vx, vy, ax, ay;
     MD() {
         setSize(canvasWidth, canvasWidth);
         Frame pictureFrame = new Frame("Molecular Dynamics");
@@ -29,6 +31,21 @@ public class MD extends Canvas implements Runnable {
         pictureFrame.add(controlPanel, BorderLayout.SOUTH);
         pictureFrame.pack();
         pictureFrame.setVisible(true);
+
+        //Initialise the arrays
+        x = new double[N];
+        y = new double[N];
+        vx = new double[N];
+        vy = new double[N];
+        ax = new double[N];
+        ay = new double[N];
+
+        //Set some positions
+        double width = boxWidth / N;
+        for (int i = 0; i < N; i++) {
+          x[i] = i * width + 0.5;
+          y[i] = boxWidth / 2 - Math.sin(x[i]);
+        }
 
         Thread simulationThread = new Thread(this);
         simulationThread.start();   //it executes the run method
@@ -54,10 +71,17 @@ public class MD extends Canvas implements Runnable {
         //Draw here
         //We are drawing on the buffer instead of the canvas
         Graphics bg = bf.getGraphics();
-        bg.setColor(Color.lightGray);
+        bg.setColor(Color.white);
         bg.fillRect(0, 0, this.canvasWidth, this.canvasWidth);    //background rectangle
         bg.setColor(Color.blue);
         bg.drawString("Counter: " + this.counter, 0, this.canvasWidth);
+        int x, y, r;
+        for (int i = 0; i < N; i++) {
+          x = (int) Math.round(this.x[i] * pixelsPerUnit);
+          y = (int) Math.round(this.y[i] * pixelsPerUnit);
+          r = pixelsPerUnit / 2;
+          bg.drawOval(x - r, y - r, r, r);
+        }
         //After drawing we flush the content of the buffer to the canvas
         //This is atomic operation and no screen refreshment is happening during this
         //Hence no more flickering of the animation
