@@ -41,10 +41,20 @@ public class MD extends Canvas implements Runnable {
         ay = new double[N];
 
         //Set some positions
-        double width = boxWidth / N;
-        for (int i = 0; i < N; i++) {
-          x[i] = i * width + 0.5;
-          y[i] = boxWidth / 2 - Math.sin(x[i]);
+        double sqrN = Math.floor(Math.sqrt(N)) + 1;
+        double width = boxWidth / (sqrN + 1);
+        double offset;
+        if (width > 1.5) width = 1.5;
+        offset = (boxWidth - sqrN * width) / 2;
+        int index;
+        for (int col = 0; col < sqrN; col++) {
+            for (int row = 0; row < sqrN; row++) {
+                index = (int) (row *  sqrN) + col;
+                if (index < N) {
+                    x[index] = offset + col * width + 0.5;
+                    y[index] = offset + row * width + 0.5;
+                }
+            }
         }
 
         Thread simulationThread = new Thread(this);
@@ -80,7 +90,7 @@ public class MD extends Canvas implements Runnable {
           x = (int) Math.round(this.x[i] * pixelsPerUnit);
           y = (int) Math.round(this.y[i] * pixelsPerUnit);
           r = pixelsPerUnit / 2;
-          bg.drawOval(x - r, y - r, r, r);
+          bg.drawOval(x - r, y - r, pixelsPerUnit, pixelsPerUnit);
         }
         //After drawing we flush the content of the buffer to the canvas
         //This is atomic operation and no screen refreshment is happening during this
