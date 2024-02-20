@@ -58,8 +58,8 @@ public class MD extends Canvas implements Runnable {
         }
 
         //Set initial velocities
-        vx[0] = 1;
-        vy[0] = 0.5;
+        //vx[0] = 0.1;
+        //vy[0] = 0.5;
 
         Thread simulationThread = new Thread(this);
         simulationThread.start();   //it executes the run method
@@ -101,6 +101,23 @@ public class MD extends Canvas implements Runnable {
                     ay[i] = 0.0;
                 }
             }
+        }
+
+        //Exert collision forces
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < i; j++) {
+                // compute forces between molecules i and j
+                // and add on to the accelerations of both
+                double rSquareRec = 1.0 / ((x[i] - x[j]) * (x[i] - x[j]) + (y[i] - y[j]) * (y[i] - y[j]));
+                double rToSixthRec = rSquareRec * rSquareRec * rSquareRec;
+                double rToEightRec = rToSixthRec * rSquareRec;
+                double rToFourteenthRec = rToEightRec * rToSixthRec;
+                double aPerR = 24 * (2 * rToFourteenthRec - rToEightRec);
+                ax[i] += aPerR * (x[i] - x[j]);
+                ay[i] += aPerR * (y[i] - y[j]);
+                ax[j] -= aPerR * (x[i] - x[j]);
+                ay[j] -= aPerR * (y[i] - y[j]);
+             }
         }
     }
 
