@@ -10,9 +10,9 @@ public class MD extends Canvas implements Runnable {
     double boxWidth = canvasWidth * 1.0 / pixelsPerUnit;
     //We use double buffering to stop the flickering of the animation
     BufferedImage bf = new BufferedImage(canvasWidth, canvasWidth, BufferedImage.TYPE_INT_RGB);
-    int counter = 0;
 
     double[] x, y, vx, vy, ax, ay;
+    double dt = 0.02;
     MD() {
         setSize(canvasWidth, canvasWidth);
         Frame pictureFrame = new Frame("Molecular Dynamics");
@@ -57,15 +57,62 @@ public class MD extends Canvas implements Runnable {
             }
         }
 
+        //Set initial velocities
+        vx[0] = 1;
+        vy[0] = 0.5;
+
         Thread simulationThread = new Thread(this);
         simulationThread.start();   //it executes the run method
     }
 
+    private void updatePositions() {
+        for (int i = 0; i < N; i++) {
+            x[i] += vx[i] * dt + 0.5 * ax[i] * dt * dt;
+            y[i] += vy[i] * dt + 0.5 * ay[i] * dt * dt;
+        }
+    }
+
+    private void updateVelocities() {
+        for (int i = 0; i < N; i++) {
+            vx[i] += ax[i] * 0.5 * dt;
+            vy[i] += ay[i] * 0.5 * dt;
+        }
+    }
+
+    private void computeAccelerations() {
+        // Exert force from walls
+        double wallStiffness = 50;
+        for (int i = 0; i < N; i++) {
+            if (x[i] < 0.5) {
+                ax[i] = wallStiffness * (0.5 - x[i]);
+            } else {
+                if (x[i] > boxWidth - 0.5) {
+                    ax[i] = wallStiffness * (boxWidth - 0.5 - x[i]);
+                } else {
+                    ax[i] = 0.0;
+                }
+            }
+            if (y[i] < 0.5) {
+                ay[i] = wallStiffness * (0.5 - y[i]);
+            } else {
+                if (y[i] > boxWidth - 0.5) {
+                    ay[i] = wallStiffness * (boxWidth - 0.5 - y[i]);
+                } else {
+                    ay[i] = 0.0;
+                }
+            }
+        }
+    }
+
     private void doStep() {
         //Do simulation step here
-        this.counter++;
+        updatePositions();
+        updateVelocities();
+        computeAccelerations();
+        updateVelocities();
     }
     public void run() {
+        computeAccelerations();
         while(true) {
             for (int i = 0; i < 10; i++) {
                 doStep();
@@ -84,7 +131,6 @@ public class MD extends Canvas implements Runnable {
         bg.setColor(Color.white);
         bg.fillRect(0, 0, this.canvasWidth, this.canvasWidth);    //background rectangle
         bg.setColor(Color.blue);
-        bg.drawString("Counter: " + this.counter, 0, this.canvasWidth);
         int x, y, r;
         for (int i = 0; i < N; i++) {
           x = (int) Math.round(this.x[i] * pixelsPerUnit);
