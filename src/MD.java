@@ -30,6 +30,14 @@ public class MD extends Canvas implements Runnable {
         pictureFrame.add(canvasPanel);
         Panel controlPanel = new Panel();
         // add controls to controlPanel here
+        controlPanel.setLayout(new GridLayout(0, 1));
+        Canvas dataCanvas = new Canvas() {
+            public void paint(Graphics g) {
+                g.drawString("Hello World!", 5, 15);
+            }
+        };
+        dataCanvas.setSize(canvasWidth, 20);
+        controlPanel.add(dataCanvas);
         pictureFrame.add(controlPanel, BorderLayout.SOUTH);
         pictureFrame.pack();
         pictureFrame.setVisible(true);
