@@ -27,17 +27,25 @@ public class MD extends Canvas implements Runnable {
         });
         Panel canvasPanel = new Panel();
         canvasPanel.add(this);
-        pictureFrame.add(canvasPanel);
-        Panel controlPanel = new Panel();
-        // add controls to controlPanel here
-        controlPanel.setLayout(new GridLayout(0, 1));
+        pictureFrame.add(canvasPanel, BorderLayout.NORTH);
+        Panel dataPanel = new Panel();
+        dataPanel.setLayout(new GridLayout(0, 1));
         Canvas dataCanvas = new Canvas() {
             public void paint(Graphics g) {
                 g.drawString("Hello World!", 5, 15);
             }
         };
         dataCanvas.setSize(canvasWidth, 20);
-        controlPanel.add(dataCanvas);
+        dataPanel.add(dataCanvas);
+        Panel controlPanel = new Panel();
+        controlPanel.setLayout(new GridLayout(0, 3));
+        Button startBtn = new Button("Start");
+        Button energyUpBtn = new Button("E Up");
+        Button energyDownBtn = new Button("E Down");
+        controlPanel.add(startBtn);
+        controlPanel.add(energyUpBtn);
+        controlPanel.add(energyDownBtn);
+        pictureFrame.add(dataPanel);
         pictureFrame.add(controlPanel, BorderLayout.SOUTH);
         pictureFrame.pack();
         pictureFrame.setVisible(true);
@@ -149,7 +157,7 @@ public class MD extends Canvas implements Runnable {
             //Update animation when the for loop done
             paint(this.getGraphics());
             //Make thread wait for drawing animation
-            try { Thread.sleep(1); } catch (InterruptedException e) {}
+            try { Thread.sleep(5); } catch (InterruptedException e) {}
         }
     }
 
