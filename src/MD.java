@@ -56,6 +56,18 @@ public class MD extends Canvas implements Runnable {
         });
         Button energyUpBtn = new Button("E Up");
         Button energyDownBtn = new Button("E Down");
+        energyUpBtn.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            increaseEnergy();
+          }
+        });
+        energyDownBtn.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            decreaseEnergy();
+          }
+        });
         controlPanel.add(startBtn);
         controlPanel.add(energyUpBtn);
         controlPanel.add(energyDownBtn);
@@ -108,6 +120,20 @@ public class MD extends Canvas implements Runnable {
             vx[i] += ax[i] * halfDt;
             vy[i] += ay[i] * halfDt;
         }
+    }
+
+    private void increaseEnergy() {
+      for (int i=0; i < N; i++) {
+        vx[i] = 1.1 * vx[i];
+        vy[i] = 1.1 * vy[i];
+      }
+    }
+
+    private void decreaseEnergy() {
+      for (int i=0; i < N; i++) {
+        vx[i] = vx[i] / 1.1;
+        vy[i] = vy[i] / 1.1;
+      }
     }
 
     private void computeAccelerations() {
