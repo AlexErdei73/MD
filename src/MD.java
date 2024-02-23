@@ -1,4 +1,6 @@
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -15,6 +17,7 @@ public class MD extends Canvas implements Runnable {
     double dt = 0.001;
     double halfDt = dt / 2;
     double halfDtSquare = dt * dt / 2;
+    boolean running = false;
     MD() {
         setSize(canvasWidth, canvasWidth);
         Frame pictureFrame = new Frame("Molecular Dynamics");
@@ -40,6 +43,17 @@ public class MD extends Canvas implements Runnable {
         Panel controlPanel = new Panel();
         controlPanel.setLayout(new GridLayout(0, 3));
         Button startBtn = new Button("Start");
+        startBtn.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            running = !running;
+            if (running) {
+              startBtn.setLabel("Stop");
+            } else {
+              startBtn.setLabel("Start");
+            }
+          }
+        });
         Button energyUpBtn = new Button("E Up");
         Button energyDownBtn = new Button("E Down");
         controlPanel.add(startBtn);
@@ -151,13 +165,15 @@ public class MD extends Canvas implements Runnable {
     public void run() {
         computeAccelerations();
         while(true) {
+          if (running) {
             for (int i = 0; i < 20; i++) {
-                doStep();
+              doStep();
             }
             //Update animation when the for loop done
             paint(this.getGraphics());
             //Make thread wait for drawing animation
             try { Thread.sleep(5); } catch (InterruptedException e) {}
+          }
         }
     }
 
