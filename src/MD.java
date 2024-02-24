@@ -4,6 +4,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.text.DecimalFormat;
 
 public class MD extends Canvas implements Runnable {
     int N = 1000; // number of molecules
@@ -18,6 +19,10 @@ public class MD extends Canvas implements Runnable {
     double halfDt = dt / 2;
     double halfDtSquare = dt * dt / 2;
     boolean running = false;
+    double t, kinEnergy, potEnergy;
+    double cutOffDistanceSquare = 0.111;
+    double potEnergyCorrection = 4 * (Math.pow(cutOffDistanceSquare, 6) - Math.pow(cutOffDistanceSquare, 3));
+    Canvas dataCanvas;
     MD() {
         setSize(canvasWidth, canvasWidth);
         Frame pictureFrame = new Frame("Molecular Dynamics");
@@ -33,12 +38,16 @@ public class MD extends Canvas implements Runnable {
         pictureFrame.add(canvasPanel, BorderLayout.NORTH);
         Panel dataPanel = new Panel();
         dataPanel.setLayout(new GridLayout(0, 1));
-        Canvas dataCanvas = new Canvas() {
+        dataCanvas = new Canvas() {
             public void paint(Graphics g) {
-                g.drawString("Hello World!", 5, 15);
+                DecimalFormat fourDigit = new DecimalFormat("0.0000");
+                g.drawString("t = " + fourDigit.format(t), 5, 15);
+                g.drawString("kinetic E = " + fourDigit.format(kinEnergy), 5, 30);
+                g.drawString("pot Energy = " + fourDigit.format(potEnergy), 5, 45);
+                g.drawString("energy = " + fourDigit.format(potEnergy + kinEnergy), 5, 60);
             }
         };
-        dataCanvas.setSize(canvasWidth, 20);
+        dataCanvas.setSize(canvasWidth, 75);
         dataPanel.add(dataCanvas);
         Panel controlPanel = new Panel();
         controlPanel.setLayout(new GridLayout(0, 3));
@@ -104,6 +113,8 @@ public class MD extends Canvas implements Runnable {
         //Set initial velocities
         vx[0] = 100;
 
+        t = 0;
+
         Thread simulationThread = new Thread(this);
         simulationThread.start();   //it executes the run method
     }
@@ -136,24 +147,36 @@ public class MD extends Canvas implements Runnable {
       }
     }
 
+    private void computeData() {
+      kinEnergy = 0;
+      for (int i=0; i < N; i++) {
+        kinEnergy += 0.5 * (vx[i]*vx[i] + vy[i]*vy[i]);
+      }
+    }
+
     private void computeAccelerations() {
         // Exert force from walls
         double wallStiffness = 50;
+        potEnergy = 0;
         for (int i = 0; i < N; i++) {
             if (x[i] < 0.5) {
                 ax[i] = wallStiffness * (0.5 - x[i]);
+                potEnergy += 0.5 * wallStiffness * (0.5 - x[i]) * (0.5 - x[i]);
             } else {
                 if (x[i] > boxWidth - 0.5) {
                     ax[i] = wallStiffness * (boxWidth - 0.5 - x[i]);
+                    potEnergy += 0.5 * wallStiffness * (boxWidth - 0.5 - x[i]) * (boxWidth - 0.5 - x[i]);
                 } else {
                     ax[i] = 0.0;
                 }
             }
             if (y[i] < 0.5) {
                 ay[i] = wallStiffness * (0.5 - y[i]);
+                potEnergy += 0.5 * wallStiffness * (0.5 - y[i]) * (0.5 - y[i]);
             } else {
                 if (y[i] > boxWidth - 0.5) {
                     ay[i] = wallStiffness * (boxWidth - 0.5 - y[i]);
+                    potEnergy += 0.5 * wallStiffness * (boxWidth - 0.5 - y[i]) * (boxWidth - 0.5 - y[i]);
                 } else {
                     ay[i] = 0.0;
                 }
@@ -167,8 +190,9 @@ public class MD extends Canvas implements Runnable {
                 // and add on to the accelerations of both
                 double rSquareRec = 1.0 / ((x[i] - x[j]) * (x[i] - x[j]) + (y[i] - y[j]) * (y[i] - y[j]));
                 // Take into account interaction only for close particles
-                if (rSquareRec > 0.111) {
+                if (rSquareRec > cutOffDistanceSquare) {
                     double rToSixthRec = rSquareRec * rSquareRec * rSquareRec;
+                    double rToTwelveRec = rToSixthRec * rToSixthRec;
                     double rToEightRec = rToSixthRec * rSquareRec;
                     double rToFourteenthRec = rToEightRec * rToSixthRec;
                     double aPerR = 24 * (2 * rToFourteenthRec - rToEightRec);
@@ -176,6 +200,7 @@ public class MD extends Canvas implements Runnable {
                     ay[i] += aPerR * (y[i] - y[j]);
                     ax[j] -= aPerR * (x[i] - x[j]);
                     ay[j] -= aPerR * (y[i] - y[j]);
+                    potEnergy += 4 * (rToTwelveRec - rToSixthRec) - potEnergyCorrection;
                 }
              }
         }
@@ -187,6 +212,7 @@ public class MD extends Canvas implements Runnable {
         updateVelocities();
         computeAccelerations();
         updateVelocities();
+        t += dt;
     }
     public void run() {
         computeAccelerations();
@@ -197,6 +223,8 @@ public class MD extends Canvas implements Runnable {
             }
             //Update animation when the for loop done
             paint(this.getGraphics());
+            computeData();
+            dataCanvas.repaint();
             //Make thread wait for drawing animation
             try { Thread.sleep(5); } catch (InterruptedException e) {}
           }
