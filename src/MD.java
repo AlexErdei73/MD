@@ -71,12 +71,14 @@ public class MD extends Canvas implements Runnable {
           @Override
           public void actionPerformed(ActionEvent actionEvent) {
             increaseEnergy();
+            resetData();
           }
         });
         energyDownBtn.addActionListener(new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent actionEvent) {
             decreaseEnergy();
+            resetData();
           }
         });
         controlPanel.add(startBtn);
@@ -116,8 +118,7 @@ public class MD extends Canvas implements Runnable {
         vx[0] = 100;
 
         t = 0;
-        sumOfEnergy = 0;
-        measurementNumber = 0;
+        resetData();
 
         Thread simulationThread = new Thread(this);
         simulationThread.start();   //it executes the run method
@@ -158,6 +159,11 @@ public class MD extends Canvas implements Runnable {
       }
       sumOfEnergy += kinEnergy;
       measurementNumber++;
+    }
+
+    private void resetData() {
+      sumOfEnergy = 0;
+      measurementNumber = 0;
     }
 
     private void computeAccelerations() {
