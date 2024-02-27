@@ -19,7 +19,7 @@ public class MD extends Canvas implements Runnable {
     double halfDt = dt / 2;
     double halfDtSquare = dt * dt / 2;
     boolean running = false;
-    double t, kinEnergy, potEnergy;
+    double t, kinEnergy, potEnergy, sumOfEnergy, measurementNumber;
     double cutOffDistanceSquare = 0.111;
     double potEnergyCorrection = 4 * (Math.pow(cutOffDistanceSquare, 6) - Math.pow(cutOffDistanceSquare, 3));
     Canvas dataCanvas;
@@ -45,9 +45,11 @@ public class MD extends Canvas implements Runnable {
                 g.drawString("kinetic E = " + fourDigit.format(kinEnergy), 5, 30);
                 g.drawString("pot Energy = " + fourDigit.format(potEnergy), 5, 45);
                 g.drawString("energy = " + fourDigit.format(potEnergy + kinEnergy), 5, 60);
+                double temp = sumOfEnergy / N / measurementNumber;
+                g.drawString("temp = " + fourDigit.format(temp), 5, 75);
             }
         };
-        dataCanvas.setSize(canvasWidth, 75);
+        dataCanvas.setSize(canvasWidth, 90);
         dataPanel.add(dataCanvas);
         Panel controlPanel = new Panel();
         controlPanel.setLayout(new GridLayout(0, 3));
@@ -114,6 +116,8 @@ public class MD extends Canvas implements Runnable {
         vx[0] = 100;
 
         t = 0;
+        sumOfEnergy = 0;
+        measurementNumber = 0;
 
         Thread simulationThread = new Thread(this);
         simulationThread.start();   //it executes the run method
@@ -152,6 +156,8 @@ public class MD extends Canvas implements Runnable {
       for (int i=0; i < N; i++) {
         kinEnergy += 0.5 * (vx[i]*vx[i] + vy[i]*vy[i]);
       }
+      sumOfEnergy += kinEnergy;
+      measurementNumber++;
     }
 
     private void computeAccelerations() {
