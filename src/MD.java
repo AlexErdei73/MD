@@ -19,7 +19,7 @@ public class MD extends Canvas implements Runnable {
     double halfDt = dt / 2;
     double halfDtSquare = dt * dt / 2;
     boolean running = false;
-    double t, kinEnergy, potEnergy, sumOfEnergy, measurementNumber;
+    double t, kinEnergy, potEnergy, sumOfEnergy, measurementNumber, sumOfExternalForce;
     double cutOffDistanceSquare = 0.111;
     double potEnergyCorrection = 4 * (Math.pow(cutOffDistanceSquare, 6) - Math.pow(cutOffDistanceSquare, 3));
     Canvas dataCanvas;
@@ -47,9 +47,11 @@ public class MD extends Canvas implements Runnable {
                 g.drawString("energy = " + fourDigit.format(potEnergy + kinEnergy), 5, 60);
                 double temp = sumOfEnergy / N / measurementNumber;
                 g.drawString("temp = " + fourDigit.format(temp), 5, 75);
+                double pressure = sumOfExternalForce / 4 / boxWidth / measurementNumber;
+                g.drawString("pressure = " + fourDigit.format(pressure), 5, 90);
             }
         };
-        dataCanvas.setSize(canvasWidth, 90);
+        dataCanvas.setSize(canvasWidth, 105);
         dataPanel.add(dataCanvas);
         Panel controlPanel = new Panel();
         controlPanel.setLayout(new GridLayout(0, 3));
@@ -171,6 +173,7 @@ public class MD extends Canvas implements Runnable {
 
     private void resetData() {
       sumOfEnergy = 0;
+      sumOfExternalForce = 0;
       measurementNumber = 0;
     }
 
@@ -181,10 +184,12 @@ public class MD extends Canvas implements Runnable {
         for (int i = 0; i < N; i++) {
             if (x[i] < 0.5) {
                 ax[i] = wallStiffness * (0.5 - x[i]);
+                sumOfExternalForce += ax[i];
                 potEnergy += 0.5 * wallStiffness * (0.5 - x[i]) * (0.5 - x[i]);
             } else {
                 if (x[i] > boxWidth - 0.5) {
                     ax[i] = wallStiffness * (boxWidth - 0.5 - x[i]);
+                    sumOfExternalForce -= ax[i];
                     potEnergy += 0.5 * wallStiffness * (boxWidth - 0.5 - x[i]) * (boxWidth - 0.5 - x[i]);
                 } else {
                     ax[i] = 0.0;
@@ -192,10 +197,12 @@ public class MD extends Canvas implements Runnable {
             }
             if (y[i] < 0.5) {
                 ay[i] = wallStiffness * (0.5 - y[i]);
+                sumOfExternalForce += ay[i];
                 potEnergy += 0.5 * wallStiffness * (0.5 - y[i]) * (0.5 - y[i]);
             } else {
                 if (y[i] > boxWidth - 0.5) {
                     ay[i] = wallStiffness * (boxWidth - 0.5 - y[i]);
+                    sumOfExternalForce -= ay[i];
                     potEnergy += 0.5 * wallStiffness * (boxWidth - 0.5 - y[i]) * (boxWidth - 0.5 - y[i]);
                 } else {
                     ay[i] = 0.0;
