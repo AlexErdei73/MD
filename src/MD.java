@@ -81,9 +81,17 @@ public class MD extends Canvas implements Runnable {
             resetData();
           }
         });
+        Button resetDataBtn = new Button("Reset");
+        resetDataBtn.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            resetData();
+          }
+        });
         controlPanel.add(startBtn);
         controlPanel.add(energyUpBtn);
         controlPanel.add(energyDownBtn);
+        controlPanel.add(resetDataBtn);
         pictureFrame.add(dataPanel);
         pictureFrame.add(controlPanel, BorderLayout.SOUTH);
         pictureFrame.pack();
