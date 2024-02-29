@@ -23,6 +23,7 @@ public class MD extends Canvas implements Runnable {
     double cutOffDistanceSquare = 0.111;
     double potEnergyCorrection = 4 * (Math.pow(cutOffDistanceSquare, 6) - Math.pow(cutOffDistanceSquare, 3));
     Canvas dataCanvas;
+    DecimalFormat fourDigit = new DecimalFormat("0.0000");
     MD() {
         setSize(canvasWidth, canvasWidth);
         Frame pictureFrame = new Frame("Molecular Dynamics");
@@ -40,7 +41,6 @@ public class MD extends Canvas implements Runnable {
         dataPanel.setLayout(new GridLayout(0, 1));
         dataCanvas = new Canvas() {
             public void paint(Graphics g) {
-                DecimalFormat fourDigit = new DecimalFormat("0.0000");
                 g.drawString("t = " + fourDigit.format(t), 5, 15);
                 g.drawString("kinetic E = " + fourDigit.format(kinEnergy), 5, 30);
                 g.drawString("pot Energy = " + fourDigit.format(potEnergy), 5, 45);
@@ -90,10 +90,19 @@ public class MD extends Canvas implements Runnable {
             resetData();
           }
         });
+        Button logDataBtn = new Button("Log Data");
+        logDataBtn.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            System.out.println("T=" + fourDigit.format(sumOfEnergy / measurementNumber / N) + "  " +
+              "P=" + fourDigit.format(sumOfExternalForce / measurementNumber / 4 / boxWidth));
+          }
+        });
         controlPanel.add(startBtn);
         controlPanel.add(energyUpBtn);
         controlPanel.add(energyDownBtn);
         controlPanel.add(resetDataBtn);
+        controlPanel.add(logDataBtn);
         pictureFrame.add(dataPanel);
         pictureFrame.add(controlPanel, BorderLayout.SOUTH);
         pictureFrame.pack();
