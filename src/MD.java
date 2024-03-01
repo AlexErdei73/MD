@@ -8,7 +8,7 @@ import java.text.DecimalFormat;
 
 public class MD extends Canvas implements Runnable {
     int N = 1000; // number of molecules
-    int canvasWidth = 400; // canvas width (and height) in pixels
+    int canvasWidth = 600; // canvas width (and height) in pixels
     int pixelsPerUnit = 3; // number of pixels in one distance unit
     double boxWidth = canvasWidth * 1.0 / pixelsPerUnit;
     //We use double buffering to stop the flickering of the animation
@@ -19,7 +19,7 @@ public class MD extends Canvas implements Runnable {
     double halfDt = dt / 2;
     double halfDtSquare = dt * dt / 2;
     boolean running = false;
-    double t, kinEnergy, potEnergy, sumOfEnergy, measurementNumber, sumOfExternalForce;
+    double t, kinEnergy, potEnergy, sumOfEnergy, measurementNumber, sumOfForce, externalForce;
     double cutOffDistanceSquare = 0.111;
     double potEnergyCorrection = 4 * (Math.pow(cutOffDistanceSquare, 6) - Math.pow(cutOffDistanceSquare, 3));
     Canvas dataCanvas;
@@ -47,7 +47,7 @@ public class MD extends Canvas implements Runnable {
                 g.drawString("energy = " + fourDigit.format(potEnergy + kinEnergy), 5, 60);
                 double temp = sumOfEnergy / N / measurementNumber;
                 g.drawString("temp = " + fourDigit.format(temp), 5, 75);
-                double pressure = sumOfExternalForce / 4 / boxWidth / measurementNumber;
+                double pressure = sumOfForce / 4 / boxWidth / measurementNumber;
                 g.drawString("pressure = " + fourDigit.format(pressure), 5, 90);
             }
         };
@@ -95,7 +95,7 @@ public class MD extends Canvas implements Runnable {
           @Override
           public void actionPerformed(ActionEvent actionEvent) {
             System.out.println("T=" + fourDigit.format(sumOfEnergy / measurementNumber / N) + "  " +
-              "P=" + fourDigit.format(sumOfExternalForce / measurementNumber / 4 / boxWidth));
+              "P=" + fourDigit.format(sumOfForce / measurementNumber / 4 / boxWidth));
           }
         });
         controlPanel.add(startBtn);
@@ -177,12 +177,13 @@ public class MD extends Canvas implements Runnable {
         kinEnergy += 0.5 * (vx[i]*vx[i] + vy[i]*vy[i]);
       }
       sumOfEnergy += kinEnergy;
+      sumOfForce += externalForce;
       measurementNumber++;
     }
 
     private void resetData() {
       sumOfEnergy = 0;
-      sumOfExternalForce = 0;
+      sumOfForce = 0;
       measurementNumber = 0;
     }
 
@@ -190,15 +191,16 @@ public class MD extends Canvas implements Runnable {
         // Exert force from walls
         double wallStiffness = 50;
         potEnergy = 0;
+        externalForce = 0;
         for (int i = 0; i < N; i++) {
             if (x[i] < 0.5) {
                 ax[i] = wallStiffness * (0.5 - x[i]);
-                sumOfExternalForce += ax[i];
+                externalForce += ax[i];
                 potEnergy += 0.5 * wallStiffness * (0.5 - x[i]) * (0.5 - x[i]);
             } else {
                 if (x[i] > boxWidth - 0.5) {
                     ax[i] = wallStiffness * (boxWidth - 0.5 - x[i]);
-                    sumOfExternalForce -= ax[i];
+                    externalForce -= ax[i];
                     potEnergy += 0.5 * wallStiffness * (boxWidth - 0.5 - x[i]) * (boxWidth - 0.5 - x[i]);
                 } else {
                     ax[i] = 0.0;
@@ -206,15 +208,15 @@ public class MD extends Canvas implements Runnable {
             }
             if (y[i] < 0.5) {
                 ay[i] = wallStiffness * (0.5 - y[i]);
-                sumOfExternalForce += ay[i];
+                externalForce += ay[i];
                 potEnergy += 0.5 * wallStiffness * (0.5 - y[i]) * (0.5 - y[i]);
             } else {
                 if (y[i] > boxWidth - 0.5) {
                     ay[i] = wallStiffness * (boxWidth - 0.5 - y[i]);
-                    sumOfExternalForce -= ay[i];
+                    externalForce -= ay[i];
                     potEnergy += 0.5 * wallStiffness * (boxWidth - 0.5 - y[i]) * (boxWidth - 0.5 - y[i]);
                 } else {
-                    ay[i] = 0.0;
+                    ay[i]= 0.0;
                 }
             }
         }
